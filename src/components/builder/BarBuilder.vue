@@ -21,37 +21,12 @@ const bars = ref([
     }
 ]);
 
-const currentBar = ref(null);
-const isPlaying = ref(false);
-
 const addBar = () => {
   bars.value.push({
     order: bars.value.length + 1,
     numerator: numerator.value,
     denominator: denominator.value,
   });
-};
-
-const playAllBars = () => {
-  if (!bars.value.length) return;
-  currentBar.value = 1;
-  isPlaying.value = true;
-};
-
-const stop = () => {
-  currentBar.value = null;
-  isPlaying.value = false;
-};
-
-const onBarComplete = () => {
-  if (!isPlaying.value) return;
-
-  const nextBar = currentBar.value + 1;
-  if (nextBar <= bars.value.length) {
-    currentBar.value = nextBar;
-  } else {
-    stop();
-  }
 };
 </script>
 

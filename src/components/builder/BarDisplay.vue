@@ -64,7 +64,6 @@ const startBarDisplay = () => {
   animationFrameId = requestAnimationFrame(updateLoop);
 };
 
-// Stop the bar display loop
 const stopBarDisplay = () => {
   if (animationFrameId) {
     cancelAnimationFrame(animationFrameId);
@@ -98,7 +97,6 @@ onBeforeUnmount(() => {
       <q-btn color="negative" @click="stopBarDisplay">Stop</q-btn>
     </div>
 
-    <!-- Bar display -->
     <div class="bar-display" v-for="(bar, barIndex) in bars" :key="barIndex">
       <div class="bar-container">
         <p>{{ bar.numerator }} / {{ bar.denominator }}</p>
