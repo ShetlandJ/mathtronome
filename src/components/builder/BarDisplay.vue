@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onBeforeUnmount, watch } from "vue";
+import { ref, onBeforeUnmount, watch } from "vue";
 
 const props = defineProps({
   bars: {
@@ -12,55 +12,72 @@ const props = defineProps({
   },
 });
 
-const currentBar = ref(0);
+const currentBar = ref(null);
 const currentBeat = ref(0);
-let interval = null;
+let animationFrameId = null;
 
-// Method to calculate the duration of each beat based on BPM and time signature
 const calculateBeatInterval = (bar) => {
-  if (!bar) return 500; // Default to 500ms if no bar is found
+  if (!bar) return 500;
 
-  const noteDuration = (60000 / props.bpm) * 4; // Duration of a whole note in ms
-  const beatDuration = noteDuration / bar.denominator; // Adjust for the time signature denominator
-  console.log(beatDuration, bar.denominator);
+  const noteDuration = (60000 / props.bpm) * 4;
+  const beatDuration = noteDuration / bar.denominator;
   return beatDuration;
-};
-
-// Method to calculate the total duration of the current bar dynamically
-const calculateBarDuration = (bar) => {
-  if (!bar) return 2000; // Default to 2000ms for 4/4
-
-  const beatDuration = calculateBeatInterval(bar); // Get beat duration for this specific bar
-  return beatDuration * bar.numerator; // Multiply beat duration by number of beats in the bar
 };
 
 const beatInterval = ref(calculateBeatInterval(props.bars[currentBar.value]));
 
-// Start the bar display (play the bars)
+let startTime = 0;
+let totalElapsedTime = 0;
+
 const startBarDisplay = () => {
   stopBarDisplay();
-  currentBar.value = 0;
   currentBeat.value = 0;
+  totalElapsedTime = 0;
+  startTime = performance.now();
 
-  // Update the interval using the calculated beat duration
-  interval = setInterval(() => {
-    console.log(beatInterval.value);
+  if (currentBar.value === null) {
+    currentBar.value = 0;
+  }
+
+  const updateLoop = () => {
     const currentBarData = props.bars[currentBar.value];
+    const currentTime = performance.now();
+    const elapsedTime = currentTime - startTime + totalElapsedTime;
 
-    // Move to the next beat, or the next bar if all beats are done
-    if (currentBeat.value < currentBarData.numerator - 1) {
-      currentBeat.value++;
-    } else {
+    const beatsPerBar = currentBarData.numerator;
+    const beatDuration = calculateBeatInterval(currentBarData);
+    const totalBeatsDuration = beatsPerBar * beatDuration;
+
+    if (elapsedTime >= totalBeatsDuration) {
+      totalElapsedTime += totalBeatsDuration;
       currentBeat.value = 0;
-      if (currentBar.value < props.bars.length - 1) {
-        currentBar.value++;
-      } else {
-        currentBar.value = 0;
-        clearInterval(interval); // Stop the interval when the last bar is reached
-      }
+      currentBar.value = (currentBar.value + 1) % props.bars.length;
+
+      startTime = performance.now();
+    } else {
+      currentBeat.value = Math.floor(elapsedTime / beatDuration) % beatsPerBar;
     }
-  }, beatInterval.value);
+
+    animationFrameId = requestAnimationFrame(updateLoop);
+  };
+
+  animationFrameId = requestAnimationFrame(updateLoop);
 };
+
+// Stop the bar display loop
+const stopBarDisplay = () => {
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+  }
+  currentBeat.value = 0;
+  totalElapsedTime = 0;
+};
+
+watch(beatInterval, () => {
+  stopBarDisplay();
+  startBarDisplay();
+});
 
 watch(
   () => props.bars[currentBar.value],
@@ -68,16 +85,6 @@ watch(
     beatInterval.value = calculateBeatInterval(newBar);
   }
 );
-
-// Stop the bar display
-const stopBarDisplay = () => {
-  if (interval) {
-    clearInterval(interval);
-    interval = null;
-  }
-  currentBar.value = 0;
-  currentBeat.value = 0;
-};
 
 onBeforeUnmount(() => {
   stopBarDisplay();
@@ -94,9 +101,11 @@ onBeforeUnmount(() => {
     <!-- Bar display -->
     <div class="bar-display" v-for="(bar, barIndex) in bars" :key="barIndex">
       <div class="bar-container">
+        <p>{{ bar.numerator }} / {{ bar.denominator }}</p>
         <div
           v-for="(beat, beatIndex) in Array.from({ length: bar.numerator })"
           :key="beatIndex"
+          class="mb-4"
           :class="[
             'beat',
             {

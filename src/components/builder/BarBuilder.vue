@@ -21,10 +21,9 @@ const bars = ref([
     }
 ]);
 
-const currentBar = ref(null); // Tracks the currently active bar
-const isPlaying = ref(false); // Indicates if playback is active
+const currentBar = ref(null);
+const isPlaying = ref(false);
 
-// Add a bar to the sequence
 const addBar = () => {
   bars.value.push({
     order: bars.value.length + 1,
@@ -33,28 +32,25 @@ const addBar = () => {
   });
 };
 
-// Play all bars sequentially
 const playAllBars = () => {
-  if (!bars.value.length) return; // Do nothing if no bars are added
-  currentBar.value = 1; // Start with the first bar
+  if (!bars.value.length) return;
+  currentBar.value = 1;
   isPlaying.value = true;
 };
 
-// Stop playback
 const stop = () => {
-  currentBar.value = null; // Stop playback
+  currentBar.value = null;
   isPlaying.value = false;
 };
 
-// Handle bar completion
 const onBarComplete = () => {
   if (!isPlaying.value) return;
 
   const nextBar = currentBar.value + 1;
   if (nextBar <= bars.value.length) {
-    currentBar.value = nextBar; // Move to the next bar
+    currentBar.value = nextBar;
   } else {
-    stop(); // Stop if the last bar is complete
+    stop();
   }
 };
 </script>
