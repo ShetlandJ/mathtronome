@@ -93,9 +93,9 @@ onBeforeUnmount(() => {
 
 <template>
   <div>
-    <div class="controls mb-4" v-if="bars.length > 0">
-      <q-btn color="primary" @click="startBarDisplay">Play All</q-btn>
-      <q-btn color="secondary" @click="stopBarDisplay">Stop</q-btn>
+    <div class="controls mb-4 flex justify-center" v-if="bars.length > 0">
+      <q-btn color="positive mr-2" @click="startBarDisplay">Play All</q-btn>
+      <q-btn color="negative" @click="stopBarDisplay">Stop</q-btn>
     </div>
 
     <!-- Bar display -->
